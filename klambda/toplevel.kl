@@ -1,0 +1,112 @@
+"Copyright (c) 2015, Mark Tarver
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. The name of Mark Tarver may not be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY Mark Tarver ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL Mark Tarver BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+
+(defun shun.shun () (do (shun.credits) (shun.loop)))
+
+(defun shun.loop () (do (shun.initialise_environment) (do (shun.prompt) (do (trap-error (shun.read-evaluate-print) (lambda E (pr (error-to-string E) (stoutput)))) (shun.loop)))))
+
+(defun shun.credits () (do (shun.prhush "
+Shun
+
+This software contains code (C) 2010-2015 Mark Tarver
+" (stoutput)) (do (shun.prhush (cn "shunlang.xyz, " (shun.app (value *version*) "
+" shun.a)) (stoutput)) (do (shun.prhush (cn "running under " (shun.app (value *language*) (cn ", implementation: " (shun.app (value *implementation*) "" shun.a)) shun.a)) (stoutput)) (shun.prhush (cn "
+port " (shun.app (value *port*) (cn " ported by " (shun.app (value *porters*) "
+" shun.a)) shun.a)) (stoutput))))))
+
+(defun shun.initialise_environment () (shun.multiple-set (cons shun.*call* (cons 0 (cons shun.*infs* (cons 0 (cons shun.*process-counter* (cons 0 (cons shun.*catch* (cons 0 ()))))))))))
+
+(defun shun.multiple-set (V15590) (cond ((= () V15590) ()) ((and (cons? V15590) (cons? (tl V15590))) (do (set (hd V15590) (hd (tl V15590))) (shun.multiple-set (tl (tl V15590))))) (true (shun.f_error shun.multiple-set))))
+
+(defun destroy (V15592) (declare V15592 symbol))
+
+(set shun.*history* ())
+
+(defun shun.read-evaluate-print () (let Lineread (shun.toplineread) (let History (value shun.*history*) (let NewLineread (shun.retrieve-from-history-if-needed Lineread History) (let NewHistory (shun.update_history NewLineread History) (let Parsed (fst NewLineread) (shun.toplevel Parsed)))))))
+
+(defun shun.retrieve-from-history-if-needed (V15604 V15605) (cond ((and (tuple? V15604) (and (cons? (snd V15604)) (element? (hd (snd V15604)) (cons (shun.space) (cons (shun.newline) ()))))) (shun.retrieve-from-history-if-needed (@p (fst V15604) (tl (snd V15604))) V15605)) ((and (tuple? V15604) (and (cons? (snd V15604)) (and (cons? (tl (snd V15604))) (and (= () (tl (tl (snd V15604)))) (and (cons? V15605) (and (= (hd (snd V15604)) (shun.exclamation)) (= (hd (tl (snd V15604))) (shun.exclamation)))))))) (let PastPrint (shun.prbytes (snd (hd V15605))) (hd V15605))) ((and (tuple? V15604) (and (cons? (snd V15604)) (= (hd (snd V15604)) (shun.exclamation)))) (let Key? (shun.make-key (tl (snd V15604)) V15605) (let Find (head (shun.find-past-inputs Key? V15605)) (let PastPrint (shun.prbytes (snd Find)) Find)))) ((and (tuple? V15604) (and (cons? (snd V15604)) (and (= () (tl (snd V15604))) (= (hd (snd V15604)) (shun.percent))))) (do (shun.print-past-inputs (lambda X true) (reverse V15605) 0) (abort))) ((and (tuple? V15604) (and (cons? (snd V15604)) (= (hd (snd V15604)) (shun.percent)))) (let Key? (shun.make-key (tl (snd V15604)) V15605) (let Pastprint (shun.print-past-inputs Key? (reverse V15605) 0) (abort)))) (true V15604)))
+
+(defun shun.percent () 37)
+
+(defun shun.exclamation () 33)
+
+(defun shun.prbytes (V15607) (do (map (lambda Byte (pr (n->string Byte) (stoutput))) V15607) (nl 1)))
+
+(defun shun.update_history (V15610 V15611) (set shun.*history* (cons V15610 V15611)))
+
+(defun shun.toplineread () (shun.toplineread_loop (read-byte (stinput)) ()))
+
+(defun shun.toplineread_loop (V15615 V15616) (cond ((= V15615 (shun.hat)) (simple-error "line read aborted")) ((element? V15615 (cons (shun.newline) (cons (shun.carriage-return) ()))) (let Line (compile (lambda X (shun.<st_input> X)) V15616 (lambda E shun.nextline)) (let It (shun.record-it V15616) (if (or (= Line shun.nextline) (empty? Line)) (shun.toplineread_loop (read-byte (stinput)) (append V15616 (cons V15615 ()))) (@p Line V15616))))) (true (shun.toplineread_loop (read-byte (stinput)) (append V15616 (cons V15615 ()))))))
+
+(defun shun.hat () 94)
+
+(defun shun.newline () 10)
+
+(defun shun.carriage-return () 13)
+
+(defun tc (V15622) (cond ((= + V15622) (set shun.*tc* true)) ((= - V15622) (set shun.*tc* false)) (true (simple-error "tc expects a + or -"))))
+
+(defun shun.prompt () (if (value shun.*tc*) (shun.prhush (cn "
+
+(" (shun.app (length (value shun.*history*)) "+) " shun.a)) (stoutput)) (shun.prhush (cn "
+
+(" (shun.app (length (value shun.*history*)) "-) " shun.a)) (stoutput))))
+
+(defun shun.toplevel (V15624) (shun.toplevel_evaluate V15624 (value shun.*tc*)))
+
+(defun shun.find-past-inputs (V15627 V15628) (let F (shun.find V15627 V15628) (if (empty? F) (simple-error "input not found
+") F)))
+
+(defun shun.make-key (V15631 V15632) (let Atom (hd (compile (lambda X (shun.<st_input> X)) V15631 (lambda E (if (cons? E) (simple-error (cn "parse error here: " (shun.app E "
+" shun.s))) (simple-error "parse error
+"))))) (if (integer? Atom) (lambda X (= X (nth (+ Atom 1) (reverse V15632)))) (lambda X (shun.prefix? V15631 (shun.trim-gubbins (snd X)))))))
+
+(defun shun.trim-gubbins (V15634) (cond ((and (cons? V15634) (= (hd V15634) (shun.space))) (shun.trim-gubbins (tl V15634))) ((and (cons? V15634) (= (hd V15634) (shun.newline))) (shun.trim-gubbins (tl V15634))) ((and (cons? V15634) (= (hd V15634) (shun.carriage-return))) (shun.trim-gubbins (tl V15634))) ((and (cons? V15634) (= (hd V15634) (shun.tab))) (shun.trim-gubbins (tl V15634))) ((and (cons? V15634) (= (hd V15634) (shun.left-round))) (shun.trim-gubbins (tl V15634))) (true V15634)))
+
+(defun shun.space () 32)
+
+(defun shun.tab () 9)
+
+(defun shun.left-round () 40)
+
+(defun shun.find (V15643 V15644) (cond ((= () V15644) ()) ((and (cons? V15644) (V15643 (hd V15644))) (cons (hd V15644) (shun.find V15643 (tl V15644)))) ((cons? V15644) (shun.find V15643 (tl V15644))) (true (shun.f_error shun.find))))
+
+(defun shun.prefix? (V15658 V15659) (cond ((= () V15658) true) ((and (cons? V15658) (and (cons? V15659) (= (hd V15659) (hd V15658)))) (shun.prefix? (tl V15658) (tl V15659))) (true false)))
+
+(defun shun.print-past-inputs (V15671 V15672 V15673) (cond ((= () V15672) _) ((and (cons? V15672) (not (V15671 (hd V15672)))) (shun.print-past-inputs V15671 (tl V15672) (+ V15673 1))) ((and (cons? V15672) (tuple? (hd V15672))) (do (shun.prhush (shun.app V15673 ". " shun.a) (stoutput)) (do (shun.prbytes (snd (hd V15672))) (shun.print-past-inputs V15671 (tl V15672) (+ V15673 1))))) (true (shun.f_error shun.print-past-inputs))))
+
+(defun shun.toplevel_evaluate (V15676 V15677) (cond ((and (cons? V15676) (and (cons? (tl V15676)) (and (= : (hd (tl V15676))) (and (cons? (tl (tl V15676))) (and (= () (tl (tl (tl V15676)))) (= true V15677)))))) (shun.typecheck-and-evaluate (hd V15676) (hd (tl (tl V15676))))) ((and (cons? V15676) (cons? (tl V15676))) (do (shun.toplevel_evaluate (cons (hd V15676) ()) V15677) (do (nl 1) (shun.toplevel_evaluate (tl V15676) V15677)))) ((and (cons? V15676) (and (= () (tl V15676)) (= true V15677))) (shun.typecheck-and-evaluate (hd V15676) (gensym A))) ((and (cons? V15676) (and (= () (tl V15676)) (= false V15677))) (let Eval (shun.eval-without-macros (hd V15676)) (print Eval))) (true (shun.f_error shun.toplevel_evaluate))))
+
+(defun shun.typecheck-and-evaluate (V15680 V15681) (let Typecheck (shun.typecheck V15680 V15681) (if (= Typecheck false) (simple-error "type error
+") (let Eval (shun.eval-without-macros V15680) (let Type (shun.pretty-type Typecheck) (shun.prhush (shun.app Eval (cn " : " (shun.app Type "" shun.r)) shun.s) (stoutput)))))))
+
+(defun shun.pretty-type (V15683) (shun.mult_subst (value shun.*alphabet*) (shun.extract-pvars V15683) V15683))
+
+(defun shun.extract-pvars (V15689) (cond ((shun.pvar? V15689) (cons V15689 ())) ((cons? V15689) (union (shun.extract-pvars (hd V15689)) (shun.extract-pvars (tl V15689)))) (true ())))
+
+(defun shun.mult_subst (V15697 V15698 V15699) (cond ((= () V15697) V15699) ((= () V15698) V15699) ((and (cons? V15697) (cons? V15698)) (shun.mult_subst (tl V15697) (tl V15698) (subst (hd V15697) (hd V15698) V15699))) (true (shun.f_error shun.mult_subst))))
+
+
+

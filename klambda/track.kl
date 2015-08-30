@@ -1,0 +1,79 @@
+"Copyright (c) 2015, Mark Tarver
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. The name of Mark Tarver may not be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY Mark Tarver ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL Mark Tarver BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+
+(defun shun.f_error (V15701) (do (shun.prhush (cn "partial function " (shun.app V15701 ";
+" shun.a)) (stoutput)) (do (if (and (not (shun.tracked? V15701)) (y-or-n? (cn "track " (shun.app V15701 "? " shun.a)))) (shun.track-function (ps V15701)) shun.ok) (simple-error "aborted"))))
+
+(defun shun.tracked? (V15703) (element? V15703 (value shun.*tracking*)))
+
+(defun track (V15705) (let Source (ps V15705) (shun.track-function Source)))
+
+(defun shun.track-function (V15707) (cond ((and (cons? V15707) (and (= defun (hd V15707)) (and (cons? (tl V15707)) (and (cons? (tl (tl V15707))) (and (cons? (tl (tl (tl V15707)))) (= () (tl (tl (tl (tl V15707)))))))))) (let KL (cons defun (cons (hd (tl V15707)) (cons (hd (tl (tl V15707))) (cons (shun.insert-tracking-code (hd (tl V15707)) (hd (tl (tl V15707))) (hd (tl (tl (tl V15707))))) ())))) (let Ob (eval-kl KL) (let Tr (set shun.*tracking* (cons Ob (value shun.*tracking*))) Ob)))) (true (shun.f_error shun.track-function))))
+
+(defun shun.insert-tracking-code (V15711 V15712 V15713) (cons do (cons (cons set (cons shun.*call* (cons (cons + (cons (cons value (cons shun.*call* ())) (cons 1 ()))) ()))) (cons (cons do (cons (cons shun.input-track (cons (cons value (cons shun.*call* ())) (cons V15711 (cons (shun.cons_form V15712) ())))) (cons (cons do (cons (cons shun.terpri-or-read-char ()) (cons (cons let (cons Result (cons V15713 (cons (cons do (cons (cons shun.output-track (cons (cons value (cons shun.*call* ())) (cons V15711 (cons Result ())))) (cons (cons do (cons (cons set (cons shun.*call* (cons (cons - (cons (cons value (cons shun.*call* ())) (cons 1 ()))) ()))) (cons (cons do (cons (cons shun.terpri-or-read-char ()) (cons Result ()))) ()))) ()))) ())))) ()))) ()))) ()))))
+
+(set shun.*step* false)
+
+(defun step (V15719) (cond ((= + V15719) (set shun.*step* true)) ((= - V15719) (set shun.*step* false)) (true (simple-error "step expects a + or a -.
+"))))
+
+(defun spy (V15725) (cond ((= + V15725) (set shun.*spy* true)) ((= - V15725) (set shun.*spy* false)) (true (simple-error "spy expects a + or a -.
+"))))
+
+(defun shun.terpri-or-read-char () (if (value shun.*step*) (shun.check-byte (read-byte (value *stinput*))) (nl 1)))
+
+(defun shun.check-byte (V15731) (cond ((= V15731 (shun.hat)) (simple-error "aborted")) (true true)))
+
+(defun shun.input-track (V15735 V15736 V15737) (do (shun.prhush (cn "
+" (shun.app (shun.spaces V15735) (cn "<" (shun.app V15735 (cn "> Inputs to " (shun.app V15736 (cn " 
+" (shun.app (shun.spaces V15735) "" shun.a)) shun.a)) shun.a)) shun.a)) (stoutput)) (shun.recursively-print V15737)))
+
+(defun shun.recursively-print (V15739) (cond ((= () V15739) (shun.prhush " ==>" (stoutput))) ((cons? V15739) (do (print (hd V15739)) (do (shun.prhush ", " (stoutput)) (shun.recursively-print (tl V15739))))) (true (shun.f_error shun.recursively-print))))
+
+(defun shun.spaces (V15741) (cond ((= 0 V15741) "") (true (cn " " (shun.spaces (- V15741 1))))))
+
+(defun shun.output-track (V15745 V15746 V15747) (shun.prhush (cn "
+" (shun.app (shun.spaces V15745) (cn "<" (shun.app V15745 (cn "> Output from " (shun.app V15746 (cn " 
+" (shun.app (shun.spaces V15745) (cn "==> " (shun.app V15747 "" shun.s)) shun.a)) shun.a)) shun.a)) shun.a)) (stoutput)))
+
+(defun untrack (V15749) (eval (ps V15749)))
+
+(defun profile (V15751) (shun.profile-help (ps V15751)))
+
+(defun shun.profile-help (V15757) (cond ((and (cons? V15757) (and (= defun (hd V15757)) (and (cons? (tl V15757)) (and (cons? (tl (tl V15757))) (and (cons? (tl (tl (tl V15757)))) (= () (tl (tl (tl (tl V15757)))))))))) (let G (gensym shun.f) (let Profile (cons defun (cons (hd (tl V15757)) (cons (hd (tl (tl V15757))) (cons (shun.profile-func (hd (tl V15757)) (hd (tl (tl V15757))) (cons G (hd (tl (tl V15757))))) ())))) (let Def (cons defun (cons G (cons (hd (tl (tl V15757))) (cons (subst G (hd (tl V15757)) (hd (tl (tl (tl V15757))))) ())))) (let CompileProfile (shun.eval-without-macros Profile) (let CompileG (shun.eval-without-macros Def) (hd (tl V15757)))))))) (true (simple-error "Cannot profile.
+"))))
+
+(defun unprofile (V15759) (untrack V15759))
+
+(defun shun.profile-func (V15763 V15764 V15765) (cons let (cons Start (cons (cons get-time (cons run ())) (cons (cons let (cons Result (cons V15765 (cons (cons let (cons Finish (cons (cons - (cons (cons get-time (cons run ())) (cons Start ()))) (cons (cons let (cons Record (cons (cons shun.put-profile (cons V15763 (cons (cons + (cons (cons shun.get-profile (cons V15763 ())) (cons Finish ()))) ()))) (cons Result ())))) ())))) ())))) ())))))
+
+(defun profile-results (V15767) (let Results (shun.get-profile V15767) (let Initialise (shun.put-profile V15767 0) (@p V15767 Results))))
+
+(defun shun.get-profile (V15769) (trap-error (get V15769 profile (value *property-vector*)) (lambda E 0)))
+
+(defun shun.put-profile (V15772 V15773) (put V15772 profile V15773 (value *property-vector*)))
+
+
+

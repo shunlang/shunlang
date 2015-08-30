@@ -1,0 +1,261 @@
+"Copyright (c) 2015, Mark Tarver
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. The name of Mark Tarver may not be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY Mark Tarver ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL Mark Tarver BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+
+(defun thaw (V14536) (V14536))
+
+(defun eval (V14538) (let Macroexpand (shun.walk (lambda Y (macroexpand Y)) V14538) (if (shun.packaged? Macroexpand) (map (lambda Z (shun.eval-without-macros Z)) (shun.package-contents Macroexpand)) (shun.eval-without-macros Macroexpand))))
+
+(defun shun.eval-without-macros (V14540) (eval-kl (shun.elim-def (shun.proc-input+ V14540))))
+
+(defun shun.proc-input+ (V14542) (cond ((and (cons? V14542) (and (= input+ (hd V14542)) (and (cons? (tl V14542)) (and (cons? (tl (tl V14542))) (= () (tl (tl (tl V14542)))))))) (cons input+ (cons (shun.rcons_form (hd (tl V14542))) (tl (tl V14542))))) ((and (cons? V14542) (and (= shun.read+ (hd V14542)) (and (cons? (tl V14542)) (and (cons? (tl (tl V14542))) (= () (tl (tl (tl V14542)))))))) (cons shun.read+ (cons (shun.rcons_form (hd (tl V14542))) (tl (tl V14542))))) ((cons? V14542) (map (lambda Z (shun.proc-input+ Z)) V14542)) (true V14542)))
+
+(defun shun.elim-def (V14544) (cond ((and (cons? V14544) (and (= define (hd V14544)) (cons? (tl V14544)))) (shun.shun->kl (hd (tl V14544)) (tl (tl V14544)))) ((and (cons? V14544) (and (= defmacro (hd V14544)) (cons? (tl V14544)))) (let Default (cons X (cons -> (cons X ()))) (let Def (shun.elim-def (cons define (cons (hd (tl V14544)) (append (tl (tl V14544)) Default)))) (let MacroAdd (shun.add-macro (hd (tl V14544))) Def)))) ((and (cons? V14544) (and (= defcc (hd V14544)) (cons? (tl V14544)))) (shun.elim-def (shun.yacc V14544))) ((cons? V14544) (map (lambda Z (shun.elim-def Z)) V14544)) (true V14544)))
+
+(defun shun.add-macro (V14546) (let MacroReg (value shun.*macroreg*) (let NewMacroReg (set shun.*macroreg* (adjoin V14546 (value shun.*macroreg*))) (if (= MacroReg NewMacroReg) shun.skip (set *macros* (cons (function V14546) (value *macros*)))))))
+
+(defun shun.packaged? (V14554) (cond ((and (cons? V14554) (and (= package (hd V14554)) (and (cons? (tl V14554)) (cons? (tl (tl V14554)))))) true) (true false)))
+
+(defun external (V14556) (trap-error (get V14556 shun.external-symbols (value *property-vector*)) (lambda E (simple-error (cn "package " (shun.app V14556 " has not been used.
+" shun.a))))))
+
+(defun internal (V14558) (trap-error (get V14558 shun.internal-symbols (value *property-vector*)) (lambda E (simple-error (cn "package " (shun.app V14558 " has not been used.
+" shun.a))))))
+
+(defun shun.package-contents (V14562) (cond ((and (cons? V14562) (and (= package (hd V14562)) (and (cons? (tl V14562)) (and (= null (hd (tl V14562))) (cons? (tl (tl V14562))))))) (tl (tl (tl V14562)))) ((and (cons? V14562) (and (= package (hd V14562)) (and (cons? (tl V14562)) (cons? (tl (tl V14562)))))) (shun.packageh (hd (tl V14562)) (hd (tl (tl V14562))) (tl (tl (tl V14562))))) (true (shun.f_error shun.package-contents))))
+
+(defun shun.walk (V14565 V14566) (cond ((cons? V14566) (V14565 (map (lambda Z (shun.walk V14565 Z)) V14566))) (true (V14565 V14566))))
+
+(defun compile (V14570 V14571 V14572) (let O (V14570 (cons V14571 (cons () ()))) (if (or (= (fail) O) (not (empty? (hd O)))) (V14572 O) (shun.hdtl O))))
+
+(defun fail-if (V14575 V14576) (if (V14575 V14576) (fail) V14576))
+
+(defun @s (V14579 V14580) (cn V14579 V14580))
+
+(defun tc? () (value shun.*tc*))
+
+(defun ps (V14582) (trap-error (get V14582 shun.source (value *property-vector*)) (lambda E (simple-error (shun.app V14582 " not found.
+" shun.a)))))
+
+(defun stinput () (value *stinput*))
+
+(defun shun.+vector? (V14584) (and (absvector? V14584) (> (<-address V14584 0) 0)))
+
+(defun vector (V14586) (let Vector (absvector (+ V14586 1)) (let ZeroStamp (address-> Vector 0 V14586) (let Standard (if (= V14586 0) ZeroStamp (shun.fillvector ZeroStamp 1 V14586 (fail))) Standard))))
+
+(defun shun.fillvector (V14592 V14593 V14594 V14595) (cond ((= V14594 V14593) (address-> V14592 V14594 V14595)) (true (shun.fillvector (address-> V14592 V14593 V14595) (+ 1 V14593) V14594 V14595))))
+
+(defun vector? (V14597) (and (absvector? V14597) (trap-error (>= (<-address V14597 0) 0) (lambda E false))))
+
+(defun vector-> (V14601 V14602 V14603) (if (= V14602 0) (simple-error "cannot access 0th element of a vector
+") (address-> V14601 V14602 V14603)))
+
+(defun <-vector (V14606 V14607) (if (= V14607 0) (simple-error "cannot access 0th element of a vector
+") (let VectorElement (<-address V14606 V14607) (if (= VectorElement (fail)) (simple-error "vector element not found
+") VectorElement))))
+
+(defun shun.posint? (V14609) (and (integer? V14609) (>= V14609 0)))
+
+(defun limit (V14611) (<-address V14611 0))
+
+(defun symbol? (V14613) (cond ((or (boolean? V14613) (or (number? V14613) (string? V14613))) false) (true (trap-error (let String (str V14613) (shun.analyse-symbol? String)) (lambda E false)))))
+
+(defun shun.analyse-symbol? (V14615) (cond ((shun.+string? V14615) (and (shun.alpha? (pos V14615 0)) (shun.alphanums? (tlstr V14615)))) (true (shun.f_error shun.analyse-symbol?))))
+
+(defun shun.alpha? (V14617) (element? V14617 (cons "A" (cons "B" (cons "C" (cons "D" (cons "E" (cons "F" (cons "G" (cons "H" (cons "I" (cons "J" (cons "K" (cons "L" (cons "M" (cons "N" (cons "O" (cons "P" (cons "Q" (cons "R" (cons "S" (cons "T" (cons "U" (cons "V" (cons "W" (cons "X" (cons "Y" (cons "Z" (cons "a" (cons "b" (cons "c" (cons "d" (cons "e" (cons "f" (cons "g" (cons "h" (cons "i" (cons "j" (cons "k" (cons "l" (cons "m" (cons "n" (cons "o" (cons "p" (cons "q" (cons "r" (cons "s" (cons "t" (cons "u" (cons "v" (cons "w" (cons "x" (cons "y" (cons "z" (cons "=" (cons "*" (cons "/" (cons "+" (cons "-" (cons "_" (cons "?" (cons "$" (cons "!" (cons "@" (cons "~" (cons ">" (cons "<" (cons "&" (cons "%" (cons "{" (cons "}" (cons ":" (cons ";" (cons "`" (cons "#" (cons "'" (cons "." ())))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+(defun shun.alphanums? (V14619) (cond ((= "" V14619) true) ((shun.+string? V14619) (and (shun.alphanum? (pos V14619 0)) (shun.alphanums? (tlstr V14619)))) (true (shun.f_error shun.alphanums?))))
+
+(defun shun.alphanum? (V14621) (or (shun.alpha? V14621) (shun.digit? V14621)))
+
+(defun shun.digit? (V14623) (element? V14623 (cons "1" (cons "2" (cons "3" (cons "4" (cons "5" (cons "6" (cons "7" (cons "8" (cons "9" (cons "0" ()))))))))))))
+
+(defun variable? (V14625) (cond ((or (boolean? V14625) (or (number? V14625) (string? V14625))) false) (true (trap-error (let String (str V14625) (shun.analyse-variable? String)) (lambda E false)))))
+
+(defun shun.analyse-variable? (V14627) (cond ((shun.+string? V14627) (and (shun.uppercase? (pos V14627 0)) (shun.alphanums? (tlstr V14627)))) (true (shun.f_error shun.analyse-variable?))))
+
+(defun shun.uppercase? (V14629) (element? V14629 (cons "A" (cons "B" (cons "C" (cons "D" (cons "E" (cons "F" (cons "G" (cons "H" (cons "I" (cons "J" (cons "K" (cons "L" (cons "M" (cons "N" (cons "O" (cons "P" (cons "Q" (cons "R" (cons "S" (cons "T" (cons "U" (cons "V" (cons "W" (cons "X" (cons "Y" (cons "Z" ()))))))))))))))))))))))))))))
+
+(defun gensym (V14631) (concat V14631 (set shun.*gensym* (+ 1 (value shun.*gensym*)))))
+
+(defun concat (V14634 V14635) (intern (cn (str V14634) (str V14635))))
+
+(defun @p (V14638 V14639) (let Vector (absvector 3) (let Tag (address-> Vector 0 shun.tuple) (let Fst (address-> Vector 1 V14638) (let Snd (address-> Vector 2 V14639) Vector)))))
+
+(defun fst (V14641) (<-address V14641 1))
+
+(defun snd (V14643) (<-address V14643 2))
+
+(defun tuple? (V14645) (trap-error (and (absvector? V14645) (= shun.tuple (<-address V14645 0))) (lambda E false)))
+
+(defun append (V14648 V14649) (cond ((= () V14648) V14649) ((cons? V14648) (cons (hd V14648) (append (tl V14648) V14649))) (true (shun.f_error append))))
+
+(defun @v (V14652 V14653) (let Limit (limit V14653) (let NewVector (vector (+ Limit 1)) (let X+NewVector (vector-> NewVector 1 V14652) (if (= Limit 0) X+NewVector (shun.@v-help V14653 1 Limit X+NewVector))))))
+
+(defun shun.@v-help (V14659 V14660 V14661 V14662) (cond ((= V14661 V14660) (shun.copyfromvector V14659 V14662 V14661 (+ V14661 1))) (true (shun.@v-help V14659 (+ V14660 1) V14661 (shun.copyfromvector V14659 V14662 V14660 (+ V14660 1))))))
+
+(defun shun.copyfromvector (V14667 V14668 V14669 V14670) (trap-error (vector-> V14668 V14670 (<-vector V14667 V14669)) (lambda E V14668)))
+
+(defun hdv (V14672) (trap-error (<-vector V14672 1) (lambda E (simple-error (cn "hdv needs a non-empty vector as an argument; not " (shun.app V14672 "
+" shun.s))))))
+
+(defun tlv (V14674) (let Limit (limit V14674) (if (= Limit 0) (simple-error "cannot take the tail of the empty vector
+") (if (= Limit 1) (vector 0) (let NewVector (vector (- Limit 1)) (shun.tlv-help V14674 2 Limit (vector (- Limit 1))))))))
+
+(defun shun.tlv-help (V14680 V14681 V14682 V14683) (cond ((= V14682 V14681) (shun.copyfromvector V14680 V14683 V14682 (- V14682 1))) (true (shun.tlv-help V14680 (+ V14681 1) V14682 (shun.copyfromvector V14680 V14683 V14681 (- V14681 1))))))
+
+(defun assoc (V14695 V14696) (cond ((= () V14696) ()) ((and (cons? V14696) (and (cons? (hd V14696)) (= (hd (hd V14696)) V14695))) (hd V14696)) ((cons? V14696) (assoc V14695 (tl V14696))) (true (shun.f_error assoc))))
+
+(defun boolean? (V14702) (cond ((= true V14702) true) ((= false V14702) true) (true false)))
+
+(defun nl (V14704) (cond ((= 0 V14704) 0) (true (do (shun.prhush "
+" (stoutput)) (nl (- V14704 1))))))
+
+(defun difference (V14709 V14710) (cond ((= () V14709) ()) ((cons? V14709) (if (element? (hd V14709) V14710) (difference (tl V14709) V14710) (cons (hd V14709) (difference (tl V14709) V14710)))) (true (shun.f_error difference))))
+
+(defun do (V14713 V14714) V14714)
+
+(defun element? (V14726 V14727) (cond ((= () V14727) false) ((and (cons? V14727) (= (hd V14727) V14726)) true) ((cons? V14727) (element? V14726 (tl V14727))) (true (shun.f_error element?))))
+
+(defun empty? (V14733) (cond ((= () V14733) true) (true false)))
+
+(defun fix (V14736 V14737) (shun.fix-help V14736 V14737 (V14736 V14737)))
+
+(defun shun.fix-help (V14748 V14749 V14750) (cond ((= V14750 V14749) V14750) (true (shun.fix-help V14748 V14750 (V14748 V14750)))))
+
+(defun put (V14755 V14756 V14757 V14758) (let N (hash V14755 (limit V14758)) (let Entry (trap-error (<-vector V14758 N) (lambda E ())) (let Change (vector-> V14758 N (shun.change-pointer-value V14755 V14756 V14757 Entry)) V14757))))
+
+(defun unput (V14762 V14763 V14764) (let N (hash V14762 (limit V14764)) (let Entry (trap-error (<-vector V14764 N) (lambda E ())) (let Change (vector-> V14764 N (shun.remove-pointer V14762 V14763 Entry)) V14762))))
+
+(defun shun.remove-pointer (V14772 V14773 V14774) (cond ((= () V14774) ()) ((and (cons? V14774) (and (cons? (hd V14774)) (and (cons? (hd (hd V14774))) (and (cons? (tl (hd (hd V14774)))) (and (= () (tl (tl (hd (hd V14774))))) (and (= (hd (tl (hd (hd V14774)))) V14773) (= (hd (hd (hd V14774))) V14772))))))) (tl V14774)) ((cons? V14774) (cons (hd V14774) (shun.remove-pointer V14772 V14773 (tl V14774)))) (true (shun.f_error shun.remove-pointer))))
+
+(defun shun.change-pointer-value (V14783 V14784 V14785 V14786) (cond ((= () V14786) (cons (cons (cons V14783 (cons V14784 ())) V14785) ())) ((and (cons? V14786) (and (cons? (hd V14786)) (and (cons? (hd (hd V14786))) (and (cons? (tl (hd (hd V14786)))) (and (= () (tl (tl (hd (hd V14786))))) (and (= (hd (tl (hd (hd V14786)))) V14784) (= (hd (hd (hd V14786))) V14783))))))) (cons (cons (hd (hd V14786)) V14785) (tl V14786))) ((cons? V14786) (cons (hd V14786) (shun.change-pointer-value V14783 V14784 V14785 (tl V14786)))) (true (shun.f_error shun.change-pointer-value))))
+
+(defun get (V14790 V14791 V14792) (let N (hash V14790 (limit V14792)) (let Entry (trap-error (<-vector V14792 N) (lambda E (simple-error "pointer not found
+"))) (let Result (assoc (cons V14790 (cons V14791 ())) Entry) (if (empty? Result) (simple-error "value not found
+") (tl Result))))))
+
+(defun hash (V14795 V14796) (let Hash (shun.mod (sum (map (lambda X (string->n X)) (explode V14795))) V14796) (if (= 0 Hash) 1 Hash)))
+
+(defun shun.mod (V14799 V14800) (shun.modh V14799 (shun.multiples V14799 (cons V14800 ()))))
+
+(defun shun.multiples (V14803 V14804) (cond ((and (cons? V14804) (> (hd V14804) V14803)) (tl V14804)) ((cons? V14804) (shun.multiples V14803 (cons (* 2 (hd V14804)) V14804))) (true (shun.f_error shun.multiples))))
+
+(defun shun.modh (V14809 V14810) (cond ((= 0 V14809) 0) ((= () V14810) V14809) ((and (cons? V14810) (> (hd V14810) V14809)) (if (empty? (tl V14810)) V14809 (shun.modh V14809 (tl V14810)))) ((cons? V14810) (shun.modh (- V14809 (hd V14810)) V14810)) (true (shun.f_error shun.modh))))
+
+(defun sum (V14812) (cond ((= () V14812) 0) ((cons? V14812) (+ (hd V14812) (sum (tl V14812)))) (true (shun.f_error sum))))
+
+(defun head (V14820) (cond ((cons? V14820) (hd V14820)) (true (simple-error "head expects a non-empty list"))))
+
+(defun tail (V14828) (cond ((cons? V14828) (tl V14828)) (true (simple-error "tail expects a non-empty list"))))
+
+(defun hdstr (V14830) (pos V14830 0))
+
+(defun intersection (V14835 V14836) (cond ((= () V14835) ()) ((cons? V14835) (if (element? (hd V14835) V14836) (cons (hd V14835) (intersection (tl V14835) V14836)) (intersection (tl V14835) V14836))) (true (shun.f_error intersection))))
+
+(defun reverse (V14838) (shun.reverse_help V14838 ()))
+
+(defun shun.reverse_help (V14841 V14842) (cond ((= () V14841) V14842) ((cons? V14841) (shun.reverse_help (tl V14841) (cons (hd V14841) V14842))) (true (shun.f_error shun.reverse_help))))
+
+(defun union (V14845 V14846) (cond ((= () V14845) V14846) ((cons? V14845) (if (element? (hd V14845) V14846) (union (tl V14845) V14846) (cons (hd V14845) (union (tl V14845) V14846)))) (true (shun.f_error union))))
+
+(defun y-or-n? (V14848) (let Message (shun.prhush (shun.proc-nl V14848) (stoutput)) (let Y-or-N (shun.prhush " (y/n) " (stoutput)) (let Input (shun.app (read (stinput)) "" shun.s) (if (= "y" Input) true (if (= "n" Input) false (do (shun.prhush "please answer y or n
+" (stoutput)) (y-or-n? V14848))))))))
+
+(defun not (V14850) (if V14850 false true))
+
+(defun subst (V14863 V14864 V14865) (cond ((= V14865 V14864) V14863) ((cons? V14865) (map (lambda W (subst V14863 V14864 W)) V14865)) (true V14865)))
+
+(defun explode (V14867) (shun.explode-h (shun.app V14867 "" shun.a)))
+
+(defun shun.explode-h (V14869) (cond ((= "" V14869) ()) ((shun.+string? V14869) (cons (pos V14869 0) (shun.explode-h (tlstr V14869)))) (true (shun.f_error shun.explode-h))))
+
+(defun cd (V14871) (set *home-directory* (if (= V14871 "") "" (shun.app V14871 "/" shun.a))))
+
+(defun map (V14874 V14875) (shun.map-h V14874 V14875 ()))
+
+(defun shun.map-h (V14881 V14882 V14883) (cond ((= () V14882) (reverse V14883)) ((cons? V14882) (shun.map-h V14881 (tl V14882) (cons (V14881 (hd V14882)) V14883))) (true (shun.f_error shun.map-h))))
+
+(defun length (V14885) (shun.length-h V14885 0))
+
+(defun shun.length-h (V14888 V14889) (cond ((= () V14888) V14889) (true (shun.length-h (tl V14888) (+ V14889 1)))))
+
+(defun occurrences (V14901 V14902) (cond ((= V14902 V14901) 1) ((cons? V14902) (+ (occurrences V14901 (hd V14902)) (occurrences V14901 (tl V14902)))) (true 0)))
+
+(defun nth (V14911 V14912) (cond ((and (= 1 V14911) (cons? V14912)) (hd V14912)) ((cons? V14912) (nth (- V14911 1) (tl V14912))) (true (shun.f_error nth))))
+
+(defun integer? (V14914) (and (number? V14914) (let Abs (shun.abs V14914) (shun.integer-test? Abs (shun.magless Abs 1)))))
+
+(defun shun.abs (V14916) (if (> V14916 0) V14916 (- 0 V14916)))
+
+(defun shun.magless (V14919 V14920) (let Nx2 (* V14920 2) (if (> Nx2 V14919) V14920 (shun.magless V14919 Nx2))))
+
+(defun shun.integer-test? (V14926 V14927) (cond ((= 0 V14926) true) ((> 1 V14926) false) (true (let Abs-N (- V14926 V14927) (if (> 0 Abs-N) (integer? V14926) (shun.integer-test? Abs-N V14927))))))
+
+(defun mapcan (V14932 V14933) (cond ((= () V14933) ()) ((cons? V14933) (append (V14932 (hd V14933)) (mapcan V14932 (tl V14933)))) (true (shun.f_error mapcan))))
+
+(defun == (V14945 V14946) (cond ((= V14946 V14945) true) (true false)))
+
+(defun abort () (simple-error ""))
+
+(defun bound? (V14948) (and (symbol? V14948) (let Val (trap-error (value V14948) (lambda E shun.this-symbol-is-unbound)) (if (= Val shun.this-symbol-is-unbound) false true))))
+
+(defun shun.string->bytes (V14950) (cond ((= "" V14950) ()) (true (cons (string->n (pos V14950 0)) (shun.string->bytes (tlstr V14950))))))
+
+(defun maxinferences (V14952) (set shun.*maxinferences* V14952))
+
+(defun inferences () (value shun.*infs*))
+
+(defun protect (V14954) V14954)
+
+(defun stoutput () (value *stoutput*))
+
+(defun string->symbol (V14956) (let Symbol (intern V14956) (if (symbol? Symbol) Symbol (simple-error (cn "cannot intern " (shun.app V14956 " to a symbol" shun.s))))))
+
+(defun optimise (V14962) (cond ((= + V14962) (set shun.*optimise* true)) ((= - V14962) (set shun.*optimise* false)) (true (simple-error "optimise expects a + or a -.
+"))))
+
+(defun os () (value *os*))
+
+(defun language () (value *language*))
+
+(defun version () (value *version*))
+
+(defun port () (value *port*))
+
+(defun porters () (value *porters*))
+
+(defun implementation () (value *implementation*))
+
+(defun release () (value *release*))
+
+(defun package? (V14964) (trap-error (do (external V14964) true) (lambda E false)))
+
+(defun function (V14966) (shun.lookup-func V14966 (value shun.*symbol-table*)))
+
+(defun shun.lookup-func (V14976 V14977) (cond ((= () V14977) (simple-error (shun.app V14976 " has no lambda expansion
+" shun.a))) ((and (cons? V14977) (and (cons? (hd V14977)) (= (hd (hd V14977)) V14976))) (tl (hd V14977))) ((cons? V14977) (shun.lookup-func V14976 (tl V14977))) (true (shun.f_error shun.lookup-func))))
+
+
+

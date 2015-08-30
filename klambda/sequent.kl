@@ -1,0 +1,142 @@
+"Copyright (c) 2015, Mark Tarver
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. The name of Mark Tarver may not be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY Mark Tarver ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL Mark Tarver BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+
+(defun shun.datatype-error (V14350) (cond ((and (cons? V14350) (and (cons? (tl V14350)) (= () (tl (tl V14350))))) (simple-error (cn "datatype syntax error here:
+
+ " (shun.app (shun.next-50 50 (hd V14350)) "
+" shun.a)))) (true (shun.f_error shun.datatype-error))))
+
+(defun shun.<datatype-rules> (V14352) (let YaccParse (let Parse_shun.<datatype-rule> (shun.<datatype-rule> V14352) (if (not (= (fail) Parse_shun.<datatype-rule>)) (let Parse_shun.<datatype-rules> (shun.<datatype-rules> Parse_shun.<datatype-rule>) (if (not (= (fail) Parse_shun.<datatype-rules>)) (shun.pair (hd Parse_shun.<datatype-rules>) (cons (shun.hdtl Parse_shun.<datatype-rule>) (shun.hdtl Parse_shun.<datatype-rules>))) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_<e> (<e> V14352) (if (not (= (fail) Parse_<e>)) (shun.pair (hd Parse_<e>) ()) (fail))) YaccParse)))
+
+(defun shun.<datatype-rule> (V14354) (let YaccParse (let Parse_shun.<side-conditions> (shun.<side-conditions> V14354) (if (not (= (fail) Parse_shun.<side-conditions>)) (let Parse_shun.<premises> (shun.<premises> Parse_shun.<side-conditions>) (if (not (= (fail) Parse_shun.<premises>)) (let Parse_shun.<singleunderline> (shun.<singleunderline> Parse_shun.<premises>) (if (not (= (fail) Parse_shun.<singleunderline>)) (let Parse_shun.<conclusion> (shun.<conclusion> Parse_shun.<singleunderline>) (if (not (= (fail) Parse_shun.<conclusion>)) (shun.pair (hd Parse_shun.<conclusion>) (shun.sequent shun.single (cons (shun.hdtl Parse_shun.<side-conditions>) (cons (shun.hdtl Parse_shun.<premises>) (cons (shun.hdtl Parse_shun.<conclusion>) ()))))) (fail))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<side-conditions> (shun.<side-conditions> V14354) (if (not (= (fail) Parse_shun.<side-conditions>)) (let Parse_shun.<premises> (shun.<premises> Parse_shun.<side-conditions>) (if (not (= (fail) Parse_shun.<premises>)) (let Parse_shun.<doubleunderline> (shun.<doubleunderline> Parse_shun.<premises>) (if (not (= (fail) Parse_shun.<doubleunderline>)) (let Parse_shun.<conclusion> (shun.<conclusion> Parse_shun.<doubleunderline>) (if (not (= (fail) Parse_shun.<conclusion>)) (shun.pair (hd Parse_shun.<conclusion>) (shun.sequent shun.double (cons (shun.hdtl Parse_shun.<side-conditions>) (cons (shun.hdtl Parse_shun.<premises>) (cons (shun.hdtl Parse_shun.<conclusion>) ()))))) (fail))) (fail))) (fail))) (fail))) YaccParse)))
+
+(defun shun.<side-conditions> (V14356) (let YaccParse (let Parse_shun.<side-condition> (shun.<side-condition> V14356) (if (not (= (fail) Parse_shun.<side-condition>)) (let Parse_shun.<side-conditions> (shun.<side-conditions> Parse_shun.<side-condition>) (if (not (= (fail) Parse_shun.<side-conditions>)) (shun.pair (hd Parse_shun.<side-conditions>) (cons (shun.hdtl Parse_shun.<side-condition>) (shun.hdtl Parse_shun.<side-conditions>))) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_<e> (<e> V14356) (if (not (= (fail) Parse_<e>)) (shun.pair (hd Parse_<e>) ()) (fail))) YaccParse)))
+
+(defun shun.<side-condition> (V14358) (let YaccParse (if (and (cons? (hd V14358)) (= if (hd (hd V14358)))) (let Parse_shun.<expr> (shun.<expr> (shun.pair (tl (hd V14358)) (shun.hdtl V14358))) (if (not (= (fail) Parse_shun.<expr>)) (shun.pair (hd Parse_shun.<expr>) (cons if (cons (shun.hdtl Parse_shun.<expr>) ()))) (fail))) (fail)) (if (= YaccParse (fail)) (if (and (cons? (hd V14358)) (= let (hd (hd V14358)))) (let Parse_shun.<variable?> (shun.<variable?> (shun.pair (tl (hd V14358)) (shun.hdtl V14358))) (if (not (= (fail) Parse_shun.<variable?>)) (let Parse_shun.<expr> (shun.<expr> Parse_shun.<variable?>) (if (not (= (fail) Parse_shun.<expr>)) (shun.pair (hd Parse_shun.<expr>) (cons let (cons (shun.hdtl Parse_shun.<variable?>) (cons (shun.hdtl Parse_shun.<expr>) ())))) (fail))) (fail))) (fail)) YaccParse)))
+
+(defun shun.<variable?> (V14360) (if (cons? (hd V14360)) (let Parse_X (hd (hd V14360)) (if (variable? Parse_X) (shun.pair (hd (shun.pair (tl (hd V14360)) (shun.hdtl V14360))) Parse_X) (fail))) (fail)))
+
+(defun shun.<expr> (V14362) (if (cons? (hd V14362)) (let Parse_X (hd (hd V14362)) (if (not (or (element? Parse_X (cons >> (cons ; ()))) (or (shun.singleunderline? Parse_X) (shun.doubleunderline? Parse_X)))) (shun.pair (hd (shun.pair (tl (hd V14362)) (shun.hdtl V14362))) (shun.remove-bar Parse_X)) (fail))) (fail)))
+
+(defun shun.remove-bar (V14364) (cond ((and (cons? V14364) (and (cons? (tl V14364)) (and (cons? (tl (tl V14364))) (and (= () (tl (tl (tl V14364)))) (= (hd (tl V14364)) bar!))))) (cons (hd V14364) (hd (tl (tl V14364))))) ((cons? V14364) (cons (shun.remove-bar (hd V14364)) (shun.remove-bar (tl V14364)))) (true V14364)))
+
+(defun shun.<premises> (V14366) (let YaccParse (let Parse_shun.<premise> (shun.<premise> V14366) (if (not (= (fail) Parse_shun.<premise>)) (let Parse_shun.<semicolon-symbol> (shun.<semicolon-symbol> Parse_shun.<premise>) (if (not (= (fail) Parse_shun.<semicolon-symbol>)) (let Parse_shun.<premises> (shun.<premises> Parse_shun.<semicolon-symbol>) (if (not (= (fail) Parse_shun.<premises>)) (shun.pair (hd Parse_shun.<premises>) (cons (shun.hdtl Parse_shun.<premise>) (shun.hdtl Parse_shun.<premises>))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_<e> (<e> V14366) (if (not (= (fail) Parse_<e>)) (shun.pair (hd Parse_<e>) ()) (fail))) YaccParse)))
+
+(defun shun.<semicolon-symbol> (V14368) (if (cons? (hd V14368)) (let Parse_X (hd (hd V14368)) (if (= Parse_X ;) (shun.pair (hd (shun.pair (tl (hd V14368)) (shun.hdtl V14368))) shun.skip) (fail))) (fail)))
+
+(defun shun.<premise> (V14370) (let YaccParse (if (and (cons? (hd V14370)) (= ! (hd (hd V14370)))) (shun.pair (hd (shun.pair (tl (hd V14370)) (shun.hdtl V14370))) !) (fail)) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<formulae> (shun.<formulae> V14370) (if (not (= (fail) Parse_shun.<formulae>)) (if (and (cons? (hd Parse_shun.<formulae>)) (= >> (hd (hd Parse_shun.<formulae>)))) (let Parse_shun.<formula> (shun.<formula> (shun.pair (tl (hd Parse_shun.<formulae>)) (shun.hdtl Parse_shun.<formulae>))) (if (not (= (fail) Parse_shun.<formula>)) (shun.pair (hd Parse_shun.<formula>) (shun.sequent (shun.hdtl Parse_shun.<formulae>) (shun.hdtl Parse_shun.<formula>))) (fail))) (fail)) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<formula> (shun.<formula> V14370) (if (not (= (fail) Parse_shun.<formula>)) (shun.pair (hd Parse_shun.<formula>) (shun.sequent () (shun.hdtl Parse_shun.<formula>))) (fail))) YaccParse)) YaccParse)))
+
+(defun shun.<conclusion> (V14372) (let YaccParse (let Parse_shun.<formulae> (shun.<formulae> V14372) (if (not (= (fail) Parse_shun.<formulae>)) (if (and (cons? (hd Parse_shun.<formulae>)) (= >> (hd (hd Parse_shun.<formulae>)))) (let Parse_shun.<formula> (shun.<formula> (shun.pair (tl (hd Parse_shun.<formulae>)) (shun.hdtl Parse_shun.<formulae>))) (if (not (= (fail) Parse_shun.<formula>)) (let Parse_shun.<semicolon-symbol> (shun.<semicolon-symbol> Parse_shun.<formula>) (if (not (= (fail) Parse_shun.<semicolon-symbol>)) (shun.pair (hd Parse_shun.<semicolon-symbol>) (shun.sequent (shun.hdtl Parse_shun.<formulae>) (shun.hdtl Parse_shun.<formula>))) (fail))) (fail))) (fail)) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<formula> (shun.<formula> V14372) (if (not (= (fail) Parse_shun.<formula>)) (let Parse_shun.<semicolon-symbol> (shun.<semicolon-symbol> Parse_shun.<formula>) (if (not (= (fail) Parse_shun.<semicolon-symbol>)) (shun.pair (hd Parse_shun.<semicolon-symbol>) (shun.sequent () (shun.hdtl Parse_shun.<formula>))) (fail))) (fail))) YaccParse)))
+
+(defun shun.sequent (V14375 V14376) (@p V14375 V14376))
+
+(defun shun.<formulae> (V14378) (let YaccParse (let Parse_shun.<formula> (shun.<formula> V14378) (if (not (= (fail) Parse_shun.<formula>)) (let Parse_shun.<comma-symbol> (shun.<comma-symbol> Parse_shun.<formula>) (if (not (= (fail) Parse_shun.<comma-symbol>)) (let Parse_shun.<formulae> (shun.<formulae> Parse_shun.<comma-symbol>) (if (not (= (fail) Parse_shun.<formulae>)) (shun.pair (hd Parse_shun.<formulae>) (cons (shun.hdtl Parse_shun.<formula>) (shun.hdtl Parse_shun.<formulae>))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<formula> (shun.<formula> V14378) (if (not (= (fail) Parse_shun.<formula>)) (shun.pair (hd Parse_shun.<formula>) (cons (shun.hdtl Parse_shun.<formula>) ())) (fail))) (if (= YaccParse (fail)) (let Parse_<e> (<e> V14378) (if (not (= (fail) Parse_<e>)) (shun.pair (hd Parse_<e>) ()) (fail))) YaccParse)) YaccParse)))
+
+(defun shun.<comma-symbol> (V14380) (if (cons? (hd V14380)) (let Parse_X (hd (hd V14380)) (if (= Parse_X (intern ",")) (shun.pair (hd (shun.pair (tl (hd V14380)) (shun.hdtl V14380))) shun.skip) (fail))) (fail)))
+
+(defun shun.<formula> (V14382) (let YaccParse (let Parse_shun.<expr> (shun.<expr> V14382) (if (not (= (fail) Parse_shun.<expr>)) (if (and (cons? (hd Parse_shun.<expr>)) (= : (hd (hd Parse_shun.<expr>)))) (let Parse_shun.<type> (shun.<type> (shun.pair (tl (hd Parse_shun.<expr>)) (shun.hdtl Parse_shun.<expr>))) (if (not (= (fail) Parse_shun.<type>)) (shun.pair (hd Parse_shun.<type>) (cons (shun.curry (shun.hdtl Parse_shun.<expr>)) (cons : (cons (shun.demodulate (shun.hdtl Parse_shun.<type>)) ())))) (fail))) (fail)) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<expr> (shun.<expr> V14382) (if (not (= (fail) Parse_shun.<expr>)) (shun.pair (hd Parse_shun.<expr>) (shun.hdtl Parse_shun.<expr>)) (fail))) YaccParse)))
+
+(defun shun.<type> (V14384) (let Parse_shun.<expr> (shun.<expr> V14384) (if (not (= (fail) Parse_shun.<expr>)) (shun.pair (hd Parse_shun.<expr>) (shun.curry-type (shun.hdtl Parse_shun.<expr>))) (fail))))
+
+(defun shun.<doubleunderline> (V14386) (if (cons? (hd V14386)) (let Parse_X (hd (hd V14386)) (if (shun.doubleunderline? Parse_X) (shun.pair (hd (shun.pair (tl (hd V14386)) (shun.hdtl V14386))) Parse_X) (fail))) (fail)))
+
+(defun shun.<singleunderline> (V14388) (if (cons? (hd V14388)) (let Parse_X (hd (hd V14388)) (if (shun.singleunderline? Parse_X) (shun.pair (hd (shun.pair (tl (hd V14388)) (shun.hdtl V14388))) Parse_X) (fail))) (fail)))
+
+(defun shun.singleunderline? (V14390) (and (symbol? V14390) (shun.sh? (str V14390))))
+
+(defun shun.sh? (V14392) (cond ((= "_" V14392) true) (true (and (= (pos V14392 0) "_") (shun.sh? (tlstr V14392))))))
+
+(defun shun.doubleunderline? (V14394) (and (symbol? V14394) (shun.dh? (str V14394))))
+
+(defun shun.dh? (V14396) (cond ((= "=" V14396) true) (true (and (= (pos V14396 0) "=") (shun.dh? (tlstr V14396))))))
+
+(defun shun.process-datatype (V14399 V14400) (shun.remember-datatype (shun.s-prolog (shun.rules->horn-clauses V14399 V14400))))
+
+(defun shun.remember-datatype (V14406) (cond ((cons? V14406) (do (set shun.*datatypes* (adjoin (hd V14406) (value shun.*datatypes*))) (do (set shun.*alldatatypes* (adjoin (hd V14406) (value shun.*alldatatypes*))) (hd V14406)))) (true (shun.f_error shun.remember-datatype))))
+
+(defun shun.rules->horn-clauses (V14411 V14412) (cond ((= () V14412) ()) ((and (cons? V14412) (and (tuple? (hd V14412)) (= shun.single (fst (hd V14412))))) (cons (shun.rule->horn-clause V14411 (snd (hd V14412))) (shun.rules->horn-clauses V14411 (tl V14412)))) ((and (cons? V14412) (and (tuple? (hd V14412)) (= shun.double (fst (hd V14412))))) (shun.rules->horn-clauses V14411 (append (shun.double->singles (snd (hd V14412))) (tl V14412)))) (true (shun.f_error shun.rules->horn-clauses))))
+
+(defun shun.double->singles (V14414) (cons (shun.right-rule V14414) (cons (shun.left-rule V14414) ())))
+
+(defun shun.right-rule (V14416) (@p shun.single V14416))
+
+(defun shun.left-rule (V14418) (cond ((and (cons? V14418) (and (cons? (tl V14418)) (and (cons? (tl (tl V14418))) (and (tuple? (hd (tl (tl V14418)))) (and (= () (fst (hd (tl (tl V14418))))) (= () (tl (tl (tl V14418))))))))) (let Q (gensym Qv) (let NewConclusion (@p (cons (snd (hd (tl (tl V14418)))) ()) Q) (let NewPremises (cons (@p (map (lambda X (shun.right->left X)) (hd (tl V14418))) Q) ()) (@p shun.single (cons (hd V14418) (cons NewPremises (cons NewConclusion ())))))))) (true (shun.f_error shun.left-rule))))
+
+(defun shun.right->left (V14424) (cond ((and (tuple? V14424) (= () (fst V14424))) (snd V14424)) (true (simple-error "syntax error with ==========
+"))))
+
+(defun shun.rule->horn-clause (V14427 V14428) (cond ((and (cons? V14428) (and (cons? (tl V14428)) (and (cons? (tl (tl V14428))) (and (tuple? (hd (tl (tl V14428)))) (= () (tl (tl (tl V14428)))))))) (cons (shun.rule->horn-clause-head V14427 (snd (hd (tl (tl V14428))))) (cons :- (cons (shun.rule->horn-clause-body (hd V14428) (hd (tl V14428)) (fst (hd (tl (tl V14428))))) ())))) (true (shun.f_error shun.rule->horn-clause))))
+
+(defun shun.rule->horn-clause-head (V14431 V14432) (cons V14431 (cons (shun.mode-ify V14432) (cons Context_1957 ()))))
+
+(defun shun.mode-ify (V14434) (cond ((and (cons? V14434) (and (cons? (tl V14434)) (and (= : (hd (tl V14434))) (and (cons? (tl (tl V14434))) (= () (tl (tl (tl V14434)))))))) (cons mode (cons (cons (hd V14434) (cons : (cons (cons mode (cons (hd (tl (tl V14434))) (cons + ()))) ()))) (cons - ())))) (true V14434)))
+
+(defun shun.rule->horn-clause-body (V14438 V14439 V14440) (let Variables (map (lambda X (shun.extract_vars X)) V14440) (let Predicates (map (lambda X (gensym shun.cl)) V14440) (let SearchLiterals (shun.construct-search-literals Predicates Variables Context_1957 Context1_1957) (let SearchClauses (shun.construct-search-clauses Predicates V14440 Variables) (let SideLiterals (shun.construct-side-literals V14438) (let PremissLiterals (map (lambda X (shun.construct-premiss-literal X (empty? V14440))) V14439) (append SearchLiterals (append SideLiterals PremissLiterals)))))))))
+
+(defun shun.construct-search-literals (V14449 V14450 V14451 V14452) (cond ((and (= () V14449) (= () V14450)) ()) (true (shun.csl-help V14449 V14450 V14451 V14452))))
+
+(defun shun.csl-help (V14459 V14460 V14461 V14462) (cond ((and (= () V14459) (= () V14460)) (cons (cons bind (cons ContextOut_1957 (cons V14461 ()))) ())) ((and (cons? V14459) (cons? V14460)) (cons (cons (hd V14459) (cons V14461 (cons V14462 (hd V14460)))) (shun.csl-help (tl V14459) (tl V14460) V14462 (gensym Context)))) (true (shun.f_error shun.csl-help))))
+
+(defun shun.construct-search-clauses (V14466 V14467 V14468) (cond ((and (= () V14466) (and (= () V14467) (= () V14468))) shun.skip) ((and (cons? V14466) (and (cons? V14467) (cons? V14468))) (do (shun.construct-search-clause (hd V14466) (hd V14467) (hd V14468)) (shun.construct-search-clauses (tl V14466) (tl V14467) (tl V14468)))) (true (shun.f_error shun.construct-search-clauses))))
+
+(defun shun.construct-search-clause (V14472 V14473 V14474) (shun.s-prolog (cons (shun.construct-base-search-clause V14472 V14473 V14474) (cons (shun.construct-recursive-search-clause V14472 V14473 V14474) ()))))
+
+(defun shun.construct-base-search-clause (V14478 V14479 V14480) (cons (cons V14478 (cons (cons (shun.mode-ify V14479) In_1957) (cons In_1957 V14480))) (cons :- (cons () ()))))
+
+(defun shun.construct-recursive-search-clause (V14484 V14485 V14486) (cons (cons V14484 (cons (cons Assumption_1957 Assumptions_1957) (cons (cons Assumption_1957 Out_1957) V14486))) (cons :- (cons (cons (cons V14484 (cons Assumptions_1957 (cons Out_1957 V14486))) ()) ()))))
+
+(defun shun.construct-side-literals (V14492) (cond ((= () V14492) ()) ((and (cons? V14492) (and (cons? (hd V14492)) (and (= if (hd (hd V14492))) (and (cons? (tl (hd V14492))) (= () (tl (tl (hd V14492)))))))) (cons (cons when (tl (hd V14492))) (shun.construct-side-literals (tl V14492)))) ((and (cons? V14492) (and (cons? (hd V14492)) (and (= let (hd (hd V14492))) (and (cons? (tl (hd V14492))) (and (cons? (tl (tl (hd V14492)))) (= () (tl (tl (tl (hd V14492)))))))))) (cons (cons is (tl (hd V14492))) (shun.construct-side-literals (tl V14492)))) ((cons? V14492) (shun.construct-side-literals (tl V14492))) (true (shun.f_error shun.construct-side-literals))))
+
+(defun shun.construct-premiss-literal (V14499 V14500) (cond ((tuple? V14499) (cons shun.t* (cons (shun.recursive_cons_form (snd V14499)) (cons (shun.construct-context V14500 (fst V14499)) ())))) ((= ! V14499) (cons cut (cons Throwcontrol ()))) (true (shun.f_error shun.construct-premiss-literal))))
+
+(defun shun.construct-context (V14503 V14504) (cond ((and (= true V14503) (= () V14504)) Context_1957) ((and (= false V14503) (= () V14504)) ContextOut_1957) ((cons? V14504) (cons cons (cons (shun.recursive_cons_form (hd V14504)) (cons (shun.construct-context V14503 (tl V14504)) ())))) (true (shun.f_error shun.construct-context))))
+
+(defun shun.recursive_cons_form (V14506) (cond ((cons? V14506) (cons cons (cons (shun.recursive_cons_form (hd V14506)) (cons (shun.recursive_cons_form (tl V14506)) ())))) (true V14506)))
+
+(defun preclude (V14508) (shun.preclude-h (map (lambda X (shun.intern-type X)) V14508)))
+
+(defun shun.preclude-h (V14510) (let FilterDatatypes (set shun.*datatypes* (difference (value shun.*datatypes*) V14510)) (value shun.*datatypes*)))
+
+(defun include (V14512) (shun.include-h (map (lambda X (shun.intern-type X)) V14512)))
+
+(defun shun.include-h (V14514) (let ValidTypes (intersection V14514 (value shun.*alldatatypes*)) (let NewDatatypes (set shun.*datatypes* (union ValidTypes (value shun.*datatypes*))) (value shun.*datatypes*))))
+
+(defun preclude-all-but (V14516) (shun.preclude-h (difference (value shun.*alldatatypes*) (map (lambda X (shun.intern-type X)) V14516))))
+
+(defun include-all-but (V14518) (shun.include-h (difference (value shun.*alldatatypes*) (map (lambda X (shun.intern-type X)) V14518))))
+
+(defun shun.synonyms-help (V14524) (cond ((= () V14524) (shun.demodulation-function (value shun.*tc*) (mapcan (lambda X (shun.demod-rule X)) (value shun.*synonyms*)))) ((and (cons? V14524) (cons? (tl V14524))) (let Vs (difference (shun.extract_vars (hd (tl V14524))) (shun.extract_vars (hd V14524))) (if (empty? Vs) (do (shun.pushnew (cons (hd V14524) (cons (hd (tl V14524)) ())) shun.*synonyms*) (shun.synonyms-help (tl (tl V14524)))) (shun.free_variable_warnings (hd (tl V14524)) Vs)))) (true (simple-error "odd number of synonyms
+"))))
+
+(defun shun.pushnew (V14527 V14528) (if (element? V14527 (value V14528)) (value V14528) (set V14528 (cons V14527 (value V14528)))))
+
+(defun shun.demod-rule (V14530) (cond ((and (cons? V14530) (and (cons? (tl V14530)) (= () (tl (tl V14530))))) (cons (shun.rcons_form (hd V14530)) (cons -> (cons (shun.rcons_form (hd (tl V14530))) ())))) (true (shun.f_error shun.demod-rule))))
+
+(defun shun.demodulation-function (V14533 V14534) (do (tc -) (do (eval (cons define (cons shun.demod (append V14534 (shun.default-rule))))) (do (if V14533 (tc +) shun.skip) synonyms))))
+
+(defun shun.default-rule () (cons X (cons -> (cons X ()))))
+
+
+

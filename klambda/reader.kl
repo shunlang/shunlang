@@ -1,0 +1,202 @@
+"Copyright (c) 2015, Mark Tarver
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. The name of Mark Tarver may not be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY Mark Tarver ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL Mark Tarver BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+
+(defun read-file-as-bytelist (V14083) (let Stream (open V14083 in) (let Byte (read-byte Stream) (let Bytes (shun.read-file-as-bytelist-help Stream Byte ()) (let Close (close Stream) (reverse Bytes))))))
+
+(defun shun.read-file-as-bytelist-help (V14087 V14088 V14089) (cond ((= -1 V14088) V14089) (true (shun.read-file-as-bytelist-help V14087 (read-byte V14087) (cons V14088 V14089)))))
+
+(defun read-file-as-string (V14091) (let Stream (open V14091 in) (shun.rfas-h Stream (read-byte Stream) "")))
+
+(defun shun.rfas-h (V14095 V14096 V14097) (cond ((= -1 V14096) (do (close V14095) V14097)) (true (shun.rfas-h V14095 (read-byte V14095) (cn V14097 (n->string V14096))))))
+
+(defun input (V14099) (eval-kl (read V14099)))
+
+(defun input+ (V14102 V14103) (let Mono? (shun.monotype V14102) (let Input (read V14103) (if (= false (shun.typecheck Input (shun.demodulate V14102))) (simple-error (cn "type error: " (shun.app Input (cn " is not of type " (shun.app V14102 "
+" shun.r)) shun.r))) (eval-kl Input)))))
+
+(defun shun.monotype (V14105) (cond ((cons? V14105) (map (lambda Z (shun.monotype Z)) V14105)) (true (if (variable? V14105) (simple-error (cn "input+ expects a monotype: not " (shun.app V14105 "
+" shun.a))) V14105))))
+
+(defun read (V14107) (hd (shun.read-loop V14107 (read-byte V14107) ())))
+
+(defun it () (value shun.*it*))
+
+(defun shun.read-loop (V14115 V14116 V14117) (cond ((= 94 V14116) (simple-error "read aborted")) ((= -1 V14116) (if (empty? V14117) (simple-error "error: empty stream") (compile (lambda X (shun.<st_input> X)) V14117 (lambda E E)))) ((shun.terminator? V14116) (let AllBytes (append V14117 (cons V14116 ())) (let It (shun.record-it AllBytes) (let Read (compile (lambda X (shun.<st_input> X)) AllBytes (lambda E shun.nextbyte)) (if (or (= Read shun.nextbyte) (empty? Read)) (shun.read-loop V14115 (read-byte V14115) AllBytes) Read))))) (true (shun.read-loop V14115 (read-byte V14115) (append V14117 (cons V14116 ()))))))
+
+(defun shun.terminator? (V14119) (element? V14119 (cons 9 (cons 10 (cons 13 (cons 32 (cons 34 (cons 41 (cons 93 ())))))))))
+
+(defun lineread (V14121) (shun.lineread-loop (read-byte V14121) () V14121))
+
+(defun shun.lineread-loop (V14126 V14127 V14128) (cond ((= -1 V14126) (if (empty? V14127) (simple-error "empty stream") (compile (lambda X (shun.<st_input> X)) V14127 (lambda E E)))) ((= V14126 (shun.hat)) (simple-error "line read aborted")) ((element? V14126 (cons (shun.newline) (cons (shun.carriage-return) ()))) (let Line (compile (lambda X (shun.<st_input> X)) V14127 (lambda E shun.nextline)) (let It (shun.record-it V14127) (if (or (= Line shun.nextline) (empty? Line)) (shun.lineread-loop (read-byte V14128) (append V14127 (cons V14126 ())) V14128) Line)))) (true (shun.lineread-loop (read-byte V14128) (append V14127 (cons V14126 ())) V14128))))
+
+(defun shun.record-it (V14130) (let TrimLeft (shun.trim-whitespace V14130) (let TrimRight (shun.trim-whitespace (reverse TrimLeft)) (let Trimmed (reverse TrimRight) (shun.record-it-h Trimmed)))))
+
+(defun shun.trim-whitespace (V14132) (cond ((and (cons? V14132) (element? (hd V14132) (cons 9 (cons 10 (cons 13 (cons 32 ())))))) (shun.trim-whitespace (tl V14132))) (true V14132)))
+
+(defun shun.record-it-h (V14134) (do (set shun.*it* (shun.cn-all (map (lambda X (n->string X)) V14134))) V14134))
+
+(defun shun.cn-all (V14136) (cond ((= () V14136) "") ((cons? V14136) (cn (hd V14136) (shun.cn-all (tl V14136)))) (true (shun.f_error shun.cn-all))))
+
+(defun read-file (V14138) (let Bytelist (read-file-as-bytelist V14138) (compile (lambda X (shun.<st_input> X)) Bytelist (lambda X (shun.read-error X)))))
+
+(defun read-from-string (V14140) (let Ns (map (lambda X (string->n X)) (explode V14140)) (compile (lambda X (shun.<st_input> X)) Ns (lambda X (shun.read-error X)))))
+
+(defun shun.read-error (V14148) (cond ((and (cons? V14148) (and (cons? (hd V14148)) (and (cons? (tl V14148)) (= () (tl (tl V14148)))))) (simple-error (cn "read error here:
+
+ " (shun.app (shun.compress-50 50 (hd V14148)) "
+" shun.a)))) (true (simple-error "read error
+"))))
+
+(defun shun.compress-50 (V14155 V14156) (cond ((= () V14156) "") ((= 0 V14155) "") ((cons? V14156) (cn (n->string (hd V14156)) (shun.compress-50 (- V14155 1) (tl V14156)))) (true (shun.f_error shun.compress-50))))
+
+(defun shun.<st_input> (V14158) (let YaccParse (let Parse_shun.<lsb> (shun.<lsb> V14158) (if (not (= (fail) Parse_shun.<lsb>)) (let Parse_shun.<st_input1> (shun.<st_input1> Parse_shun.<lsb>) (if (not (= (fail) Parse_shun.<st_input1>)) (let Parse_shun.<rsb> (shun.<rsb> Parse_shun.<st_input1>) (if (not (= (fail) Parse_shun.<rsb>)) (let Parse_shun.<st_input2> (shun.<st_input2> Parse_shun.<rsb>) (if (not (= (fail) Parse_shun.<st_input2>)) (shun.pair (hd Parse_shun.<st_input2>) (cons (macroexpand (shun.cons_form (shun.hdtl Parse_shun.<st_input1>))) (shun.hdtl Parse_shun.<st_input2>))) (fail))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<lrb> (shun.<lrb> V14158) (if (not (= (fail) Parse_shun.<lrb>)) (let Parse_shun.<st_input1> (shun.<st_input1> Parse_shun.<lrb>) (if (not (= (fail) Parse_shun.<st_input1>)) (let Parse_shun.<rrb> (shun.<rrb> Parse_shun.<st_input1>) (if (not (= (fail) Parse_shun.<rrb>)) (let Parse_shun.<st_input2> (shun.<st_input2> Parse_shun.<rrb>) (if (not (= (fail) Parse_shun.<st_input2>)) (shun.pair (hd Parse_shun.<st_input2>) (shun.package-macro (macroexpand (shun.hdtl Parse_shun.<st_input1>)) (shun.hdtl Parse_shun.<st_input2>))) (fail))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<lcurly> (shun.<lcurly> V14158) (if (not (= (fail) Parse_shun.<lcurly>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<lcurly>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (cons { (shun.hdtl Parse_shun.<st_input>))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<rcurly> (shun.<rcurly> V14158) (if (not (= (fail) Parse_shun.<rcurly>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<rcurly>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (cons } (shun.hdtl Parse_shun.<st_input>))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<bar> (shun.<bar> V14158) (if (not (= (fail) Parse_shun.<bar>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<bar>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (cons bar! (shun.hdtl Parse_shun.<st_input>))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<semicolon> (shun.<semicolon> V14158) (if (not (= (fail) Parse_shun.<semicolon>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<semicolon>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (cons ; (shun.hdtl Parse_shun.<st_input>))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<colon> (shun.<colon> V14158) (if (not (= (fail) Parse_shun.<colon>)) (let Parse_shun.<equal> (shun.<equal> Parse_shun.<colon>) (if (not (= (fail) Parse_shun.<equal>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<equal>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (cons := (shun.hdtl Parse_shun.<st_input>))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<colon> (shun.<colon> V14158) (if (not (= (fail) Parse_shun.<colon>)) (let Parse_shun.<minus> (shun.<minus> Parse_shun.<colon>) (if (not (= (fail) Parse_shun.<minus>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<minus>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (cons :- (shun.hdtl Parse_shun.<st_input>))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<colon> (shun.<colon> V14158) (if (not (= (fail) Parse_shun.<colon>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<colon>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (cons : (shun.hdtl Parse_shun.<st_input>))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<comma> (shun.<comma> V14158) (if (not (= (fail) Parse_shun.<comma>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<comma>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (cons (intern ",") (shun.hdtl Parse_shun.<st_input>))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<comment> (shun.<comment> V14158) (if (not (= (fail) Parse_shun.<comment>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<comment>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (shun.hdtl Parse_shun.<st_input>)) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<atom> (shun.<atom> V14158) (if (not (= (fail) Parse_shun.<atom>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<atom>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (cons (macroexpand (shun.hdtl Parse_shun.<atom>)) (shun.hdtl Parse_shun.<st_input>))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<whitespaces> (shun.<whitespaces> V14158) (if (not (= (fail) Parse_shun.<whitespaces>)) (let Parse_shun.<st_input> (shun.<st_input> Parse_shun.<whitespaces>) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (shun.hdtl Parse_shun.<st_input>)) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_<e> (<e> V14158) (if (not (= (fail) Parse_<e>)) (shun.pair (hd Parse_<e>) ()) (fail))) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)))
+
+(defun shun.<lsb> (V14160) (if (and (cons? (hd V14160)) (= 91 (hd (hd V14160)))) (shun.pair (hd (shun.pair (tl (hd V14160)) (shun.hdtl V14160))) shun.skip) (fail)))
+
+(defun shun.<rsb> (V14162) (if (and (cons? (hd V14162)) (= 93 (hd (hd V14162)))) (shun.pair (hd (shun.pair (tl (hd V14162)) (shun.hdtl V14162))) shun.skip) (fail)))
+
+(defun shun.<lcurly> (V14164) (if (and (cons? (hd V14164)) (= 123 (hd (hd V14164)))) (shun.pair (hd (shun.pair (tl (hd V14164)) (shun.hdtl V14164))) shun.skip) (fail)))
+
+(defun shun.<rcurly> (V14166) (if (and (cons? (hd V14166)) (= 125 (hd (hd V14166)))) (shun.pair (hd (shun.pair (tl (hd V14166)) (shun.hdtl V14166))) shun.skip) (fail)))
+
+(defun shun.<bar> (V14168) (if (and (cons? (hd V14168)) (= 124 (hd (hd V14168)))) (shun.pair (hd (shun.pair (tl (hd V14168)) (shun.hdtl V14168))) shun.skip) (fail)))
+
+(defun shun.<semicolon> (V14170) (if (and (cons? (hd V14170)) (= 59 (hd (hd V14170)))) (shun.pair (hd (shun.pair (tl (hd V14170)) (shun.hdtl V14170))) shun.skip) (fail)))
+
+(defun shun.<colon> (V14172) (if (and (cons? (hd V14172)) (= 58 (hd (hd V14172)))) (shun.pair (hd (shun.pair (tl (hd V14172)) (shun.hdtl V14172))) shun.skip) (fail)))
+
+(defun shun.<comma> (V14174) (if (and (cons? (hd V14174)) (= 44 (hd (hd V14174)))) (shun.pair (hd (shun.pair (tl (hd V14174)) (shun.hdtl V14174))) shun.skip) (fail)))
+
+(defun shun.<equal> (V14176) (if (and (cons? (hd V14176)) (= 61 (hd (hd V14176)))) (shun.pair (hd (shun.pair (tl (hd V14176)) (shun.hdtl V14176))) shun.skip) (fail)))
+
+(defun shun.<minus> (V14178) (if (and (cons? (hd V14178)) (= 45 (hd (hd V14178)))) (shun.pair (hd (shun.pair (tl (hd V14178)) (shun.hdtl V14178))) shun.skip) (fail)))
+
+(defun shun.<lrb> (V14180) (if (and (cons? (hd V14180)) (= 40 (hd (hd V14180)))) (shun.pair (hd (shun.pair (tl (hd V14180)) (shun.hdtl V14180))) shun.skip) (fail)))
+
+(defun shun.<rrb> (V14182) (if (and (cons? (hd V14182)) (= 41 (hd (hd V14182)))) (shun.pair (hd (shun.pair (tl (hd V14182)) (shun.hdtl V14182))) shun.skip) (fail)))
+
+(defun shun.<atom> (V14184) (let YaccParse (let Parse_shun.<str> (shun.<str> V14184) (if (not (= (fail) Parse_shun.<str>)) (shun.pair (hd Parse_shun.<str>) (shun.control-chars (shun.hdtl Parse_shun.<str>))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<number> (shun.<number> V14184) (if (not (= (fail) Parse_shun.<number>)) (shun.pair (hd Parse_shun.<number>) (shun.hdtl Parse_shun.<number>)) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<sym> (shun.<sym> V14184) (if (not (= (fail) Parse_shun.<sym>)) (shun.pair (hd Parse_shun.<sym>) (if (= (shun.hdtl Parse_shun.<sym>) "<>") (cons vector (cons 0 ())) (intern (shun.hdtl Parse_shun.<sym>)))) (fail))) YaccParse)) YaccParse)))
+
+(defun shun.control-chars (V14186) (cond ((= () V14186) "") ((and (cons? V14186) (and (= "c" (hd V14186)) (and (cons? (tl V14186)) (= "#" (hd (tl V14186)))))) (let CodePoint (shun.code-point (tl (tl V14186))) (let AfterCodePoint (shun.after-codepoint (tl (tl V14186))) (@s (n->string (shun.decimalise CodePoint)) (shun.control-chars AfterCodePoint))))) ((cons? V14186) (@s (hd V14186) (shun.control-chars (tl V14186)))) (true (shun.f_error shun.control-chars))))
+
+(defun shun.code-point (V14190) (cond ((and (cons? V14190) (= ";" (hd V14190))) "") ((and (cons? V14190) (element? (hd V14190) (cons "0" (cons "1" (cons "2" (cons "3" (cons "4" (cons "5" (cons "6" (cons "7" (cons "8" (cons "9" (cons "0" ()))))))))))))) (cons (hd V14190) (shun.code-point (tl V14190)))) (true (simple-error (cn "code point parse error " (shun.app V14190 "
+" shun.a))))))
+
+(defun shun.after-codepoint (V14196) (cond ((= () V14196) ()) ((and (cons? V14196) (= ";" (hd V14196))) (tl V14196)) ((cons? V14196) (shun.after-codepoint (tl V14196))) (true (shun.f_error shun.after-codepoint))))
+
+(defun shun.decimalise (V14198) (shun.pre (reverse (shun.digits->integers V14198)) 0))
+
+(defun shun.digits->integers (V14204) (cond ((and (cons? V14204) (= "0" (hd V14204))) (cons 0 (shun.digits->integers (tl V14204)))) ((and (cons? V14204) (= "1" (hd V14204))) (cons 1 (shun.digits->integers (tl V14204)))) ((and (cons? V14204) (= "2" (hd V14204))) (cons 2 (shun.digits->integers (tl V14204)))) ((and (cons? V14204) (= "3" (hd V14204))) (cons 3 (shun.digits->integers (tl V14204)))) ((and (cons? V14204) (= "4" (hd V14204))) (cons 4 (shun.digits->integers (tl V14204)))) ((and (cons? V14204) (= "5" (hd V14204))) (cons 5 (shun.digits->integers (tl V14204)))) ((and (cons? V14204) (= "6" (hd V14204))) (cons 6 (shun.digits->integers (tl V14204)))) ((and (cons? V14204) (= "7" (hd V14204))) (cons 7 (shun.digits->integers (tl V14204)))) ((and (cons? V14204) (= "8" (hd V14204))) (cons 8 (shun.digits->integers (tl V14204)))) ((and (cons? V14204) (= "9" (hd V14204))) (cons 9 (shun.digits->integers (tl V14204)))) (true ())))
+
+(defun shun.<sym> (V14206) (let Parse_shun.<alpha> (shun.<alpha> V14206) (if (not (= (fail) Parse_shun.<alpha>)) (let Parse_shun.<alphanums> (shun.<alphanums> Parse_shun.<alpha>) (if (not (= (fail) Parse_shun.<alphanums>)) (shun.pair (hd Parse_shun.<alphanums>) (@s (shun.hdtl Parse_shun.<alpha>) (shun.hdtl Parse_shun.<alphanums>))) (fail))) (fail))))
+
+(defun shun.<alphanums> (V14208) (let YaccParse (let Parse_shun.<alphanum> (shun.<alphanum> V14208) (if (not (= (fail) Parse_shun.<alphanum>)) (let Parse_shun.<alphanums> (shun.<alphanums> Parse_shun.<alphanum>) (if (not (= (fail) Parse_shun.<alphanums>)) (shun.pair (hd Parse_shun.<alphanums>) (@s (shun.hdtl Parse_shun.<alphanum>) (shun.hdtl Parse_shun.<alphanums>))) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_<e> (<e> V14208) (if (not (= (fail) Parse_<e>)) (shun.pair (hd Parse_<e>) "") (fail))) YaccParse)))
+
+(defun shun.<alphanum> (V14210) (let YaccParse (let Parse_shun.<alpha> (shun.<alpha> V14210) (if (not (= (fail) Parse_shun.<alpha>)) (shun.pair (hd Parse_shun.<alpha>) (shun.hdtl Parse_shun.<alpha>)) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<num> (shun.<num> V14210) (if (not (= (fail) Parse_shun.<num>)) (shun.pair (hd Parse_shun.<num>) (shun.hdtl Parse_shun.<num>)) (fail))) YaccParse)))
+
+(defun shun.<num> (V14212) (if (cons? (hd V14212)) (let Parse_Byte (hd (hd V14212)) (if (shun.numbyte? Parse_Byte) (shun.pair (hd (shun.pair (tl (hd V14212)) (shun.hdtl V14212))) (n->string Parse_Byte)) (fail))) (fail)))
+
+(defun shun.numbyte? (V14218) (cond ((= 48 V14218) true) ((= 49 V14218) true) ((= 50 V14218) true) ((= 51 V14218) true) ((= 52 V14218) true) ((= 53 V14218) true) ((= 54 V14218) true) ((= 55 V14218) true) ((= 56 V14218) true) ((= 57 V14218) true) (true false)))
+
+(defun shun.<alpha> (V14220) (if (cons? (hd V14220)) (let Parse_Byte (hd (hd V14220)) (if (shun.symbol-code? Parse_Byte) (shun.pair (hd (shun.pair (tl (hd V14220)) (shun.hdtl V14220))) (n->string Parse_Byte)) (fail))) (fail)))
+
+(defun shun.symbol-code? (V14222) (or (= V14222 126) (or (and (> V14222 94) (< V14222 123)) (or (and (> V14222 59) (< V14222 91)) (or (and (> V14222 41) (and (< V14222 58) (not (= V14222 44)))) (or (and (> V14222 34) (< V14222 40)) (= V14222 33)))))))
+
+(defun shun.<str> (V14224) (let Parse_shun.<dbq> (shun.<dbq> V14224) (if (not (= (fail) Parse_shun.<dbq>)) (let Parse_shun.<strcontents> (shun.<strcontents> Parse_shun.<dbq>) (if (not (= (fail) Parse_shun.<strcontents>)) (let Parse_shun.<dbq> (shun.<dbq> Parse_shun.<strcontents>) (if (not (= (fail) Parse_shun.<dbq>)) (shun.pair (hd Parse_shun.<dbq>) (shun.hdtl Parse_shun.<strcontents>)) (fail))) (fail))) (fail))))
+
+(defun shun.<dbq> (V14226) (if (cons? (hd V14226)) (let Parse_Byte (hd (hd V14226)) (if (= Parse_Byte 34) (shun.pair (hd (shun.pair (tl (hd V14226)) (shun.hdtl V14226))) Parse_Byte) (fail))) (fail)))
+
+(defun shun.<strcontents> (V14228) (let YaccParse (let Parse_shun.<strc> (shun.<strc> V14228) (if (not (= (fail) Parse_shun.<strc>)) (let Parse_shun.<strcontents> (shun.<strcontents> Parse_shun.<strc>) (if (not (= (fail) Parse_shun.<strcontents>)) (shun.pair (hd Parse_shun.<strcontents>) (cons (shun.hdtl Parse_shun.<strc>) (shun.hdtl Parse_shun.<strcontents>))) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_<e> (<e> V14228) (if (not (= (fail) Parse_<e>)) (shun.pair (hd Parse_<e>) ()) (fail))) YaccParse)))
+
+(defun shun.<byte> (V14230) (if (cons? (hd V14230)) (let Parse_Byte (hd (hd V14230)) (shun.pair (hd (shun.pair (tl (hd V14230)) (shun.hdtl V14230))) (n->string Parse_Byte))) (fail)))
+
+(defun shun.<strc> (V14232) (if (cons? (hd V14232)) (let Parse_Byte (hd (hd V14232)) (if (not (= Parse_Byte 34)) (shun.pair (hd (shun.pair (tl (hd V14232)) (shun.hdtl V14232))) (n->string Parse_Byte)) (fail))) (fail)))
+
+(defun shun.<number> (V14234) (let YaccParse (let Parse_shun.<minus> (shun.<minus> V14234) (if (not (= (fail) Parse_shun.<minus>)) (let Parse_shun.<number> (shun.<number> Parse_shun.<minus>) (if (not (= (fail) Parse_shun.<number>)) (shun.pair (hd Parse_shun.<number>) (- 0 (shun.hdtl Parse_shun.<number>))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<plus> (shun.<plus> V14234) (if (not (= (fail) Parse_shun.<plus>)) (let Parse_shun.<number> (shun.<number> Parse_shun.<plus>) (if (not (= (fail) Parse_shun.<number>)) (shun.pair (hd Parse_shun.<number>) (shun.hdtl Parse_shun.<number>)) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<predigits> (shun.<predigits> V14234) (if (not (= (fail) Parse_shun.<predigits>)) (let Parse_shun.<stop> (shun.<stop> Parse_shun.<predigits>) (if (not (= (fail) Parse_shun.<stop>)) (let Parse_shun.<postdigits> (shun.<postdigits> Parse_shun.<stop>) (if (not (= (fail) Parse_shun.<postdigits>)) (let Parse_shun.<E> (shun.<E> Parse_shun.<postdigits>) (if (not (= (fail) Parse_shun.<E>)) (let Parse_shun.<log10> (shun.<log10> Parse_shun.<E>) (if (not (= (fail) Parse_shun.<log10>)) (shun.pair (hd Parse_shun.<log10>) (* (shun.expt 10 (shun.hdtl Parse_shun.<log10>)) (+ (shun.pre (reverse (shun.hdtl Parse_shun.<predigits>)) 0) (shun.post (shun.hdtl Parse_shun.<postdigits>) 1)))) (fail))) (fail))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<digits> (shun.<digits> V14234) (if (not (= (fail) Parse_shun.<digits>)) (let Parse_shun.<E> (shun.<E> Parse_shun.<digits>) (if (not (= (fail) Parse_shun.<E>)) (let Parse_shun.<log10> (shun.<log10> Parse_shun.<E>) (if (not (= (fail) Parse_shun.<log10>)) (shun.pair (hd Parse_shun.<log10>) (* (shun.expt 10 (shun.hdtl Parse_shun.<log10>)) (shun.pre (reverse (shun.hdtl Parse_shun.<digits>)) 0))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<predigits> (shun.<predigits> V14234) (if (not (= (fail) Parse_shun.<predigits>)) (let Parse_shun.<stop> (shun.<stop> Parse_shun.<predigits>) (if (not (= (fail) Parse_shun.<stop>)) (let Parse_shun.<postdigits> (shun.<postdigits> Parse_shun.<stop>) (if (not (= (fail) Parse_shun.<postdigits>)) (shun.pair (hd Parse_shun.<postdigits>) (+ (shun.pre (reverse (shun.hdtl Parse_shun.<predigits>)) 0) (shun.post (shun.hdtl Parse_shun.<postdigits>) 1))) (fail))) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<digits> (shun.<digits> V14234) (if (not (= (fail) Parse_shun.<digits>)) (shun.pair (hd Parse_shun.<digits>) (shun.pre (reverse (shun.hdtl Parse_shun.<digits>)) 0)) (fail))) YaccParse)) YaccParse)) YaccParse)) YaccParse)) YaccParse)))
+
+(defun shun.<E> (V14236) (if (and (cons? (hd V14236)) (= 101 (hd (hd V14236)))) (shun.pair (hd (shun.pair (tl (hd V14236)) (shun.hdtl V14236))) shun.skip) (fail)))
+
+(defun shun.<log10> (V14238) (let YaccParse (let Parse_shun.<minus> (shun.<minus> V14238) (if (not (= (fail) Parse_shun.<minus>)) (let Parse_shun.<digits> (shun.<digits> Parse_shun.<minus>) (if (not (= (fail) Parse_shun.<digits>)) (shun.pair (hd Parse_shun.<digits>) (- 0 (shun.pre (reverse (shun.hdtl Parse_shun.<digits>)) 0))) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<digits> (shun.<digits> V14238) (if (not (= (fail) Parse_shun.<digits>)) (shun.pair (hd Parse_shun.<digits>) (shun.pre (reverse (shun.hdtl Parse_shun.<digits>)) 0)) (fail))) YaccParse)))
+
+(defun shun.<plus> (V14240) (if (cons? (hd V14240)) (let Parse_Byte (hd (hd V14240)) (if (= Parse_Byte 43) (shun.pair (hd (shun.pair (tl (hd V14240)) (shun.hdtl V14240))) Parse_Byte) (fail))) (fail)))
+
+(defun shun.<stop> (V14242) (if (cons? (hd V14242)) (let Parse_Byte (hd (hd V14242)) (if (= Parse_Byte 46) (shun.pair (hd (shun.pair (tl (hd V14242)) (shun.hdtl V14242))) Parse_Byte) (fail))) (fail)))
+
+(defun shun.<predigits> (V14244) (let YaccParse (let Parse_shun.<digits> (shun.<digits> V14244) (if (not (= (fail) Parse_shun.<digits>)) (shun.pair (hd Parse_shun.<digits>) (shun.hdtl Parse_shun.<digits>)) (fail))) (if (= YaccParse (fail)) (let Parse_<e> (<e> V14244) (if (not (= (fail) Parse_<e>)) (shun.pair (hd Parse_<e>) ()) (fail))) YaccParse)))
+
+(defun shun.<postdigits> (V14246) (let Parse_shun.<digits> (shun.<digits> V14246) (if (not (= (fail) Parse_shun.<digits>)) (shun.pair (hd Parse_shun.<digits>) (shun.hdtl Parse_shun.<digits>)) (fail))))
+
+(defun shun.<digits> (V14248) (let YaccParse (let Parse_shun.<digit> (shun.<digit> V14248) (if (not (= (fail) Parse_shun.<digit>)) (let Parse_shun.<digits> (shun.<digits> Parse_shun.<digit>) (if (not (= (fail) Parse_shun.<digits>)) (shun.pair (hd Parse_shun.<digits>) (cons (shun.hdtl Parse_shun.<digit>) (shun.hdtl Parse_shun.<digits>))) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<digit> (shun.<digit> V14248) (if (not (= (fail) Parse_shun.<digit>)) (shun.pair (hd Parse_shun.<digit>) (cons (shun.hdtl Parse_shun.<digit>) ())) (fail))) YaccParse)))
+
+(defun shun.<digit> (V14250) (if (cons? (hd V14250)) (let Parse_X (hd (hd V14250)) (if (shun.numbyte? Parse_X) (shun.pair (hd (shun.pair (tl (hd V14250)) (shun.hdtl V14250))) (shun.byte->digit Parse_X)) (fail))) (fail)))
+
+(defun shun.byte->digit (V14252) (cond ((= 48 V14252) 0) ((= 49 V14252) 1) ((= 50 V14252) 2) ((= 51 V14252) 3) ((= 52 V14252) 4) ((= 53 V14252) 5) ((= 54 V14252) 6) ((= 55 V14252) 7) ((= 56 V14252) 8) ((= 57 V14252) 9) (true (shun.f_error shun.byte->digit))))
+
+(defun shun.pre (V14257 V14258) (cond ((= () V14257) 0) ((cons? V14257) (+ (* (shun.expt 10 V14258) (hd V14257)) (shun.pre (tl V14257) (+ V14258 1)))) (true (shun.f_error shun.pre))))
+
+(defun shun.post (V14263 V14264) (cond ((= () V14263) 0) ((cons? V14263) (+ (* (shun.expt 10 (- 0 V14264)) (hd V14263)) (shun.post (tl V14263) (+ V14264 1)))) (true (shun.f_error shun.post))))
+
+(defun shun.expt (V14269 V14270) (cond ((= 0 V14270) 1) ((> V14270 0) (* V14269 (shun.expt V14269 (- V14270 1)))) (true (* 1.0 (/ (shun.expt V14269 (+ V14270 1)) V14269)))))
+
+(defun shun.<st_input1> (V14272) (let Parse_shun.<st_input> (shun.<st_input> V14272) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (shun.hdtl Parse_shun.<st_input>)) (fail))))
+
+(defun shun.<st_input2> (V14274) (let Parse_shun.<st_input> (shun.<st_input> V14274) (if (not (= (fail) Parse_shun.<st_input>)) (shun.pair (hd Parse_shun.<st_input>) (shun.hdtl Parse_shun.<st_input>)) (fail))))
+
+(defun shun.<comment> (V14276) (let YaccParse (let Parse_shun.<singleline> (shun.<singleline> V14276) (if (not (= (fail) Parse_shun.<singleline>)) (shun.pair (hd Parse_shun.<singleline>) shun.skip) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<multiline> (shun.<multiline> V14276) (if (not (= (fail) Parse_shun.<multiline>)) (shun.pair (hd Parse_shun.<multiline>) shun.skip) (fail))) YaccParse)))
+
+(defun shun.<singleline> (V14278) (let Parse_shun.<backslash> (shun.<backslash> V14278) (if (not (= (fail) Parse_shun.<backslash>)) (let Parse_shun.<backslash> (shun.<backslash> Parse_shun.<backslash>) (if (not (= (fail) Parse_shun.<backslash>)) (let Parse_shun.<anysingle> (shun.<anysingle> Parse_shun.<backslash>) (if (not (= (fail) Parse_shun.<anysingle>)) (let Parse_shun.<return> (shun.<return> Parse_shun.<anysingle>) (if (not (= (fail) Parse_shun.<return>)) (shun.pair (hd Parse_shun.<return>) shun.skip) (fail))) (fail))) (fail))) (fail))))
+
+(defun shun.<backslash> (V14280) (if (and (cons? (hd V14280)) (= 92 (hd (hd V14280)))) (shun.pair (hd (shun.pair (tl (hd V14280)) (shun.hdtl V14280))) shun.skip) (fail)))
+
+(defun shun.<anysingle> (V14282) (let YaccParse (let Parse_shun.<non-return> (shun.<non-return> V14282) (if (not (= (fail) Parse_shun.<non-return>)) (let Parse_shun.<anysingle> (shun.<anysingle> Parse_shun.<non-return>) (if (not (= (fail) Parse_shun.<anysingle>)) (shun.pair (hd Parse_shun.<anysingle>) shun.skip) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_<e> (<e> V14282) (if (not (= (fail) Parse_<e>)) (shun.pair (hd Parse_<e>) shun.skip) (fail))) YaccParse)))
+
+(defun shun.<non-return> (V14284) (if (cons? (hd V14284)) (let Parse_X (hd (hd V14284)) (if (not (element? Parse_X (cons 10 (cons 13 ())))) (shun.pair (hd (shun.pair (tl (hd V14284)) (shun.hdtl V14284))) shun.skip) (fail))) (fail)))
+
+(defun shun.<return> (V14286) (if (cons? (hd V14286)) (let Parse_X (hd (hd V14286)) (if (element? Parse_X (cons 10 (cons 13 ()))) (shun.pair (hd (shun.pair (tl (hd V14286)) (shun.hdtl V14286))) shun.skip) (fail))) (fail)))
+
+(defun shun.<multiline> (V14288) (let Parse_shun.<backslash> (shun.<backslash> V14288) (if (not (= (fail) Parse_shun.<backslash>)) (let Parse_shun.<times> (shun.<times> Parse_shun.<backslash>) (if (not (= (fail) Parse_shun.<times>)) (let Parse_shun.<anymulti> (shun.<anymulti> Parse_shun.<times>) (if (not (= (fail) Parse_shun.<anymulti>)) (shun.pair (hd Parse_shun.<anymulti>) shun.skip) (fail))) (fail))) (fail))))
+
+(defun shun.<times> (V14290) (if (and (cons? (hd V14290)) (= 42 (hd (hd V14290)))) (shun.pair (hd (shun.pair (tl (hd V14290)) (shun.hdtl V14290))) shun.skip) (fail)))
+
+(defun shun.<anymulti> (V14292) (let YaccParse (let Parse_shun.<comment> (shun.<comment> V14292) (if (not (= (fail) Parse_shun.<comment>)) (let Parse_shun.<anymulti> (shun.<anymulti> Parse_shun.<comment>) (if (not (= (fail) Parse_shun.<anymulti>)) (shun.pair (hd Parse_shun.<anymulti>) shun.skip) (fail))) (fail))) (if (= YaccParse (fail)) (let YaccParse (let Parse_shun.<times> (shun.<times> V14292) (if (not (= (fail) Parse_shun.<times>)) (let Parse_shun.<backslash> (shun.<backslash> Parse_shun.<times>) (if (not (= (fail) Parse_shun.<backslash>)) (shun.pair (hd Parse_shun.<backslash>) shun.skip) (fail))) (fail))) (if (= YaccParse (fail)) (if (cons? (hd V14292)) (let Parse_X (hd (hd V14292)) (let Parse_shun.<anymulti> (shun.<anymulti> (shun.pair (tl (hd V14292)) (shun.hdtl V14292))) (if (not (= (fail) Parse_shun.<anymulti>)) (shun.pair (hd Parse_shun.<anymulti>) shun.skip) (fail)))) (fail)) YaccParse)) YaccParse)))
+
+(defun shun.<whitespaces> (V14294) (let YaccParse (let Parse_shun.<whitespace> (shun.<whitespace> V14294) (if (not (= (fail) Parse_shun.<whitespace>)) (let Parse_shun.<whitespaces> (shun.<whitespaces> Parse_shun.<whitespace>) (if (not (= (fail) Parse_shun.<whitespaces>)) (shun.pair (hd Parse_shun.<whitespaces>) shun.skip) (fail))) (fail))) (if (= YaccParse (fail)) (let Parse_shun.<whitespace> (shun.<whitespace> V14294) (if (not (= (fail) Parse_shun.<whitespace>)) (shun.pair (hd Parse_shun.<whitespace>) shun.skip) (fail))) YaccParse)))
+
+(defun shun.<whitespace> (V14296) (if (cons? (hd V14296)) (let Parse_X (hd (hd V14296)) (if (let Parse_Case Parse_X (or (= Parse_Case 32) (or (= Parse_Case 13) (or (= Parse_Case 10) (= Parse_Case 9))))) (shun.pair (hd (shun.pair (tl (hd V14296)) (shun.hdtl V14296))) shun.skip) (fail))) (fail)))
+
+(defun shun.cons_form (V14298) (cond ((= () V14298) ()) ((and (cons? V14298) (and (cons? (tl V14298)) (and (cons? (tl (tl V14298))) (and (= () (tl (tl (tl V14298)))) (= (hd (tl V14298)) bar!))))) (cons cons (cons (hd V14298) (tl (tl V14298))))) ((cons? V14298) (cons cons (cons (hd V14298) (cons (shun.cons_form (tl V14298)) ())))) (true (shun.f_error shun.cons_form))))
+
+(defun shun.package-macro (V14303 V14304) (cond ((and (cons? V14303) (and (= $ (hd V14303)) (and (cons? (tl V14303)) (= () (tl (tl V14303)))))) (append (explode (hd (tl V14303))) V14304)) ((and (cons? V14303) (and (= package (hd V14303)) (and (cons? (tl V14303)) (and (= null (hd (tl V14303))) (cons? (tl (tl V14303))))))) (append (tl (tl (tl V14303))) V14304)) ((and (cons? V14303) (and (= package (hd V14303)) (and (cons? (tl V14303)) (cons? (tl (tl V14303)))))) (let ListofExceptions (shun.eval-without-macros (hd (tl (tl V14303)))) (let External (shun.record-exceptions ListofExceptions (hd (tl V14303))) (let PackageNameDot (intern (cn (str (hd (tl V14303))) ".")) (let ExpPackageName (explode (hd (tl V14303))) (let Packaged (shun.packageh PackageNameDot ListofExceptions (tl (tl (tl V14303))) ExpPackageName) (let Internal (shun.record-internal (hd (tl V14303)) (shun.internal-symbols ExpPackageName Packaged)) (append Packaged V14304)))))))) (true (cons V14303 V14304))))
+
+(defun shun.record-exceptions (V14307 V14308) (let CurrExceptions (trap-error (get V14308 shun.external-symbols (value *property-vector*)) (lambda E ())) (let AllExceptions (union V14307 CurrExceptions) (put V14308 shun.external-symbols AllExceptions (value *property-vector*)))))
+
+(defun shun.record-internal (V14311 V14312) (put V14311 shun.internal-symbols (union V14312 (trap-error (get V14311 shun.internal-symbols (value *property-vector*)) (lambda E ()))) (value *property-vector*)))
+
+(defun shun.internal-symbols (V14323 V14324) (cond ((and (symbol? V14324) (shun.prefix? V14323 (explode V14324))) (cons V14324 ())) ((cons? V14324) (union (shun.internal-symbols V14323 (hd V14324)) (shun.internal-symbols V14323 (tl V14324)))) (true ())))
+
+(defun shun.packageh (V14341 V14342 V14343 V14344) (cond ((cons? V14343) (cons (shun.packageh V14341 V14342 (hd V14343) V14344) (shun.packageh V14341 V14342 (tl V14343) V14344))) ((or (shun.sysfunc? V14343) (or (variable? V14343) (or (element? V14343 V14342) (or (shun.doubleunderline? V14343) (shun.singleunderline? V14343))))) V14343) ((and (symbol? V14343) (let ExplodeX (explode V14343) (and (not (shun.prefix? (cons "s" (cons "h" (cons "e" (cons "n" (cons "." ()))))) ExplodeX)) (not (shun.prefix? V14344 ExplodeX))))) (concat V14341 V14343)) (true V14343)))
+
+
+
